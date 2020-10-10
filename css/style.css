@@ -17,15 +17,30 @@ body {
 
 .document {
   margin: 16px;
+
+  font-size: 14px;
+  line-height: 1.71;
+}
+
+.document .page {
+  margin-bottom: 16px;
+}
+
+.page {
   box-shadow: 0 1px 3px 1px rgba(60, 64, 67, 0.15);
   background: white;
   color: #26313b;
   border-radius: 2px;
 
-  font-size: 14px;
-  line-height: 1.71;
-
   padding: 20mm 10mm 20mm 30mm;
+}
+
+.paragraph:not(:first-of-type) {
+  margin-top: 1em;
+}
+
+.paragraph::selection {
+  background: #bbdeed;
 }
 
 .a4 {
