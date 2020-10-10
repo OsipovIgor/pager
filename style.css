@@ -1,0 +1,27 @@
+html {
+  background: #e3e3e3;
+}
+
+.centered {
+  display: flex;
+  justify-content: center;
+}
+
+.document {
+  box-shadow: 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  background: white;
+  color: #333333;
+  border-radius: 2px;
+
+  font-size: 14px;
+  font-family: Lato;
+
+  line-height: 1.5em;
+
+  padding: 20mm 10mm 20mm 30mm;
+}
+
+.a4 {
+  width: 210mm;
+  height: 297mm;
+}
