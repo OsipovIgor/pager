@@ -32,15 +32,35 @@ body {
   color: #26313b;
   border-radius: 2px;
 
-  padding: 20mm 10mm 20mm 30mm;
+  padding: 20mm 10mm 20mm 20mm;
+}
+
+.paragraph {
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;
 }
 
 .paragraph:not(:first-of-type) {
   margin-top: 1em;
 }
 
-.paragraph::selection {
+.paragraph::selection,
+.header::selection {
   background: #bbdeed;
+}
+
+.header {
+  font-size: 18px;
+  font-weight: 700;
+
+  margin-bottom: 1em;
+  text-transform: uppercase;
+}
+
+.header:not(:first-of-type) {
+  margin-top: 1.2em;
 }
 
 .a4 {

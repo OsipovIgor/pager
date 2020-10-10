@@ -1,19 +1,91 @@
-// Наиболее подходящим форматом бумаги является формат А4
-// (ширина - 210, высота - 297 мм)
+import contract from './document.json';
 
-// левое - 30 мм,
-// правое - 10 мм,
-// верхнее - 20 мм,
-// нижнее - 20 мм.
+enum PageType {
+  A3 = 'a3',
+  A4 = 'a4',
+  A5 = 'a5'
+}
 
-// Для одинакового отображения документов на разных платформах и соответствия их стандартам,
-// рекомендуется придерживаться некоторых правил оформления. Документы набираются (распечатываются)
-// на листах формата А4 (редко – на листах формата А5). Шрифт – Times New Roman (входит в состав поставки
-//  любой версии Windows, на других платформах имеет «близнецов» – Serif, Times, является шрифтом с засечками (серифами) , пропорциональный) .
-//  Размер шрифта – 14 пунктов (для рефератов может использоваться шрифт размера 12, для документов с форматом листа А5 используется размер шрифта – 10).
-// Межстрочный интервал – полуторный (для рефератов – одинарный, для диссертаций – двойной) . Отступ первой строки («красную строку» ) установите в 1 см (для формата A5 – 0,75 см) .
-//  Выравнивание – по ширине. Для презентабельного вида документов желательно установить отступы от края листа – со всех сторон – 2 см, слева можно устанавливать отступ до 2,5 см (для возможности подшивки) .
-//  Довольно большой отступ иногда делают, если документы сшиваются в брошюру, при сгибе внутренние листы выступают дальше наружных,
-// и их необходимо обрезать типографским ножом («гильотиной») . Довольно большой размер шрифта и межстрочного интервала (как и высокие требования к качеству печати)
-// для научных документов обусловлены тем, что многие из них подлежат микрофильмированию. Кроме того, большой отступ обусловлен тем,
-// что многие печатающие устройства имеют зону с краю листа, на которой они печатать не могут, особенно это характерно для матричных и струйных принтеров
+enum NodeType {
+  document = 'document',
+  header = 'header',
+  paragraph = 'paragraph'
+}
+
+type HeaderLevel = 'H1' | 'H2' | 'H3' | 'H4' | 'H5' | 'H6';
+
+type Props = {};
+type HeaderProps = Props & { level: HeaderLevel };
+type ParagraphProps = Props & { className: string };
+
+type DocumentProps = {
+  title: string;
+  author: string;
+  version: string;
+  hash: string;
+  lang: string;
+};
+
+const app = document.getElementById('app');
+if (app !== null) {
+  // document -> page -> ...
+  const doc = createDocument(contract.props);
+  const page = createPage(PageType.A4);
+
+  contract.children.forEach((child: any) => {
+    switch (child.type) {
+      case NodeType.header:
+        page.appendChild(createHeader(child.props, child.content));
+        break;
+      case NodeType.paragraph:
+        page.appendChild(createParagraph(child.props, child.content));
+        break;
+    }
+  });
+
+  doc.appendChild(page);
+  app.appendChild(doc);
+}
+
+function createDocument(props: DocumentProps) {
+  const doc = document.createElement('div');
+  doc.classList.add('document');
+
+  if (props.lang) doc.setAttribute('lang', props.lang);
+
+  return doc;
+}
+
+function createPage(type: PageType) {
+  const page = document.createElement('div');
+  page.classList.add('page');
+  page.classList.add(type);
+
+  return page;
+}
+
+function createHeader(props: HeaderProps, content: string) {
+  if (!props.level) {
+    throw new Error('Header must be a level.');
+  }
+
+  const el = document.createElement(props.level);
+  el.classList.add('header');
+  el.textContent = content;
+
+  return el;
+}
+
+function createParagraph(props: ParagraphProps, content: string) {
+  const el = document.createElement('p');
+  el.classList.add('paragraph');
+  el.textContent = content;
+
+  return el;
+}
+
+function validateDocument(contract: any) {
+  // должен иметь поле type = document и children
+  if (!contract) return false;
+  if (contract.type !== NodeType.document) return false;
+}
