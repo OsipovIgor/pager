@@ -1,7 +1,18 @@
-import { computeLowerLimit, getTextChild } from "./utils";
+import { computeLowerLimit, getTextChild } from './utils';
 
-export function createSplitter(textNode: Text, props: any, createElement: Function, page: HTMLElement, checkFitIn: Function) {
-  return function split(offset: number, leftLimit: number, rightLimit: number, elementToRemove?: HTMLElement): Text | null {
+export function createSplitter(
+  textNode: Text,
+  props: any,
+  createElement: Function,
+  page: HTMLElement,
+  checkFitIn: Function
+) {
+  return function split(
+    offset: number,
+    leftLimit: number,
+    rightLimit: number,
+    elementToRemove?: HTMLElement
+  ): Text | null {
     // console.log('current segment: ', `(${leftLimit}, ${rightLimit})`);
 
     if (rightLimit - leftLimit <= 1 && elementToRemove) {
@@ -41,5 +52,5 @@ export function createSplitter(textNode: Text, props: any, createElement: Functi
       const nextOffset = Math.floor(leftLimit + (offset - leftLimit) / 2);
       return split(nextOffset, leftLimit, offset, splittedElement);
     }
-  }
+  };
 }
