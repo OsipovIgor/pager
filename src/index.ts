@@ -1,4 +1,6 @@
 import contract from './document.json';
+import { createSplitter } from './splitter';
+import { computeLowerLimit, getTextChild } from './utils';
 
 enum PageType {
   A3 = 'a3',
@@ -73,62 +75,19 @@ if (app !== null) {
     if (!isElementFitIt) {
       element.remove();
 
-      // если первый дочерний элемент это текст, пытаемся его обрезать
-
       const textChild = getTextChild(element);
+      const checkFitIn = (elementLowerLimit: number) => pageLowerLimit - elementLowerLimit - pageVerticalPadding > 0;
 
       if (textChild == null) continue;
 
-
-      function split(offset: number, leftLimit: number, rightLimit: number, elementToRemove?: HTMLElement) {
-        // console.log('current segment: ', `(${leftLimit}, ${rightLimit})`);
-
-        if (rightLimit - leftLimit <= 1 && elementToRemove) {
-          const { textContent } = elementToRemove;
-
-          if (textContent) {
-            const spaceIndex = textContent.lastIndexOf(' ');
-
-            if (spaceIndex !== -1) {
-              const textChild = getTextChild(elementToRemove);
-
-              if (textChild != null) {
-                const splittedText = textChild.splitText(spaceIndex - 1);
-                return splittedText;
-              }
-            }
-          }
-          return;
-        }
-        elementToRemove && elementToRemove.remove();
-
-        const clonedChild = textChild.cloneNode(true) as Text;
-        clonedChild.splitText(offset);
-
-        // console.log('prev page: ', clonedChild.textContent);
-        // console.log('next page: ', newNode.textContent);
-        // console.log('================================================');
-        const splittedElement = createElement(child.props);
-        splittedElement.appendChild(clonedChild);
-
-        page.appendChild(splittedElement);
-        // проверить влезает ли нода
-        lowerLimit = computeLowerLimit(splittedElement);
-        isElementFitIt = pageLowerLimit - lowerLimit - pageVerticalPadding > 0;
-
-        if (isElementFitIt) {
-          const nextOffset = Math.floor(offset + (rightLimit - offset) / 2);
-          return split(nextOffset, offset, rightLimit, splittedElement);
-        } else {
-          const nextOffset = Math.floor(leftLimit + (offset - leftLimit) / 2);
-          return split(nextOffset, leftLimit, offset, splittedElement);
-        }
-      }
-
       if (textChild.textContent) {
         const offset = textChild.textContent.length / 2;
+        const split = createSplitter(textChild, child.props, createElement, page, checkFitIn);
         const textNode = split(offset, 0, textChild.textContent.length);
-        console.log(textNode);
+
+        if (textNode !== null) {
+          element.appendChild(textNode);
+        }
       }
 
       // добавляем новую страницу
@@ -142,15 +101,6 @@ if (app !== null) {
   }
 }
 
-function getTextChild(element: HTMLElement) {
-  if (element.firstChild && element.firstChild.nodeType === Node.TEXT_NODE) {
-    const textNode = element.firstChild as Text;
-    return textNode;
-  }
-
-  return null;
-}
-
 function getVerticalPadding(computedStyle: CSSStyleDeclaration): number {
   if (!(computedStyle instanceof CSSStyleDeclaration)) return 0;
   const padding = computedStyle.getPropertyValue('padding');
@@ -160,14 +110,6 @@ function getVerticalPadding(computedStyle: CSSStyleDeclaration): number {
 
   const [top, right, bottom, left] = array.map(parseFloat);
   return top + bottom;
-}
-
-/**
- * Получаем нижние границы элемента
- * @param element
- */
-function computeLowerLimit(element: HTMLElement) {
-  return element.getBoundingClientRect().bottom;
 }
 
 function createDocument(props: DocumentProps) {
