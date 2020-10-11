@@ -8,15 +8,21 @@ enum PageType {
 
 enum NodeType {
   document = 'document',
+}
+
+/**
+ * header, paragraph, text - основные текстовые элементы;
+ */
+enum Node20Type {
   header = 'header',
   paragraph = 'paragraph'
 }
 
 type HeaderLevel = 'H1' | 'H2' | 'H3' | 'H4' | 'H5' | 'H6';
 
-type Props = {};
-type HeaderProps = Props & { level: HeaderLevel };
-type ParagraphProps = Props & { className: string };
+interface Props {};
+interface HeaderProps extends Props { level: HeaderLevel };
+interface ParagraphProps extends Props { className: string };
 
 type DocumentProps = {
   title: string;
@@ -26,7 +32,15 @@ type DocumentProps = {
   lang: string;
 };
 
+type CreateElement = (props: HeaderProps & ParagraphProps, content?: string) => HTMLElement;
+
 const app = document.getElementById('app');
+
+const elementCreators: Record<Node20Type, CreateElement> = {
+  [Node20Type.header]: createHeader,
+  [Node20Type.paragraph]: createParagraph,
+}
+
 if (app !== null) {
   // document -> page -> ...
   const doc = createDocument(contract.props);
@@ -35,49 +49,50 @@ if (app !== null) {
   doc.appendChild(page);
   app.appendChild(doc);
 
-  let pageBottom = getBottomCoeff(page);
+  // Нижняя граница страницы
+  let pageLowerLimit = computeLowerLimit(page);
   const pageStyles = window.getComputedStyle(page);
 
-  const verticalPadding = getVerticalPadding(pageStyles);
+  const pageVerticalPadding = getVerticalPadding(pageStyles);
 
   for (let child of contract.children) {
-    switch (child.type) {
-      case NodeType.header:
-        const header = createHeader(child.props, child.content);
-        page.appendChild(header);
-        break;
-      case NodeType.paragraph:
-        const paragraph = createParagraph(child.props, child.content);
-        page.appendChild(paragraph);
-        const paragraphBottom = getBottomCoeff(paragraph);
-        const diff = pageBottom - paragraphBottom - verticalPadding;
+    const createElement = elementCreators[child.type as Node20Type];
 
-        if (diff < 0) {
-          paragraph.remove();
-          const firstChild = paragraph.firstChild as Text;
+    const element = createElement(child.props, child.content);
+    page.appendChild(element);
 
-          if (paragraph.textContent !== null && firstChild.nodeType === Node.TEXT_NODE) {
-            const offset = paragraph.textContent.length;
-            firstChild.splitText(offset / 2);
+    //
+    const lowerLimit = computeLowerLimit(element);
+    const isElementFitIt = pageLowerLimit - lowerLimit - pageVerticalPadding > 0;
 
-            const newParagraph = createParagraph(child.props);
-            newParagraph.appendChild(firstChild);
+    // если элемент не влизает на страницу
+    if (!isElementFitIt) {
+      element.remove();
 
-            page.appendChild(newParagraph);
+      // если первый дочерний элемент это текст, пытаемся его обрезать
+      if (element.firstChild && element.firstChild.nodeType === Node.TEXT_NODE) {
+        const textChild = element.firstChild as Text;
+        const textContent = textChild.textContent;
 
-            const coeff = getBottomCoeff(newParagraph);
-            const diff = pageBottom - verticalPadding - coeff;
-          }
+        if (textContent) {
+          const offset = textContent.length / 2;
+          textChild.splitText(offset);
 
-          page = createPage(PageType.A4);
+          const splittedElement = createElement(child.props);
+          splittedElement.appendChild(textChild);
 
-          doc.appendChild(page);
-          page.appendChild(paragraph);
-
-          pageBottom = getBottomCoeff(page);
+          page.appendChild(splittedElement);
+          // проверить влезает ли нода
         }
+      }
 
-        break;
+      // добавляем новую страницу
+      page = createPage(PageType.A4);
+      page.appendChild(element);
+      doc.appendChild(page);
+
+      // обновляем нижнюю границу
+      pageLowerLimit = computeLowerLimit(page);
     }
   }
 }
@@ -93,7 +108,11 @@ function getVerticalPadding(computedStyle: CSSStyleDeclaration): number {
   return top + bottom;
 }
 
-function getBottomCoeff(element: HTMLElement) {
+/**
+ * Получаем нижние границы элемента
+ * @param element
+ */
+function computeLowerLimit(element: HTMLElement) {
   return element.getBoundingClientRect().bottom;
 }
 
@@ -114,19 +133,20 @@ function createPage(type: PageType) {
   return page;
 }
 
-function createHeader(props: HeaderProps, content: string) {
+function createHeader(props: HeaderProps, content?: string): HTMLElement {
   if (!props.level) {
     throw new Error('Header must be a level.');
   }
 
   const el = document.createElement(props.level);
   el.classList.add('header');
-  el.textContent = content;
+  if (content)
+    el.textContent = content;
 
   return el;
 }
 
-function createParagraph(props: ParagraphProps, content?: string) {
+function createParagraph(props: ParagraphProps, content?: string): HTMLElement {
   const el = document.createElement('p');
   el.classList.add('paragraph');
 
