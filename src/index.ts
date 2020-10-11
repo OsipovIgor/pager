@@ -7,7 +7,7 @@ enum PageType {
 }
 
 enum NodeType {
-  document = 'document',
+  document = 'document'
 }
 
 /**
@@ -20,9 +20,13 @@ enum Node20Type {
 
 type HeaderLevel = 'H1' | 'H2' | 'H3' | 'H4' | 'H5' | 'H6';
 
-interface Props {};
-interface HeaderProps extends Props { level: HeaderLevel };
-interface ParagraphProps extends Props { className: string };
+interface Props {}
+interface HeaderProps extends Props {
+  level: HeaderLevel;
+}
+interface ParagraphProps extends Props {
+  className: string;
+}
 
 type DocumentProps = {
   title: string;
@@ -38,8 +42,8 @@ const app = document.getElementById('app');
 
 const elementCreators: Record<Node20Type, CreateElement> = {
   [Node20Type.header]: createHeader,
-  [Node20Type.paragraph]: createParagraph,
-}
+  [Node20Type.paragraph]: createParagraph
+};
 
 if (app !== null) {
   // document -> page -> ...
@@ -61,29 +65,70 @@ if (app !== null) {
     const element = createElement(child.props, child.content);
     page.appendChild(element);
 
-    //
-    const lowerLimit = computeLowerLimit(element);
-    const isElementFitIt = pageLowerLimit - lowerLimit - pageVerticalPadding > 0;
+    // получаем нижнюю границу вставленного элемента
+    let lowerLimit = computeLowerLimit(element);
+    let isElementFitIt = pageLowerLimit - lowerLimit - pageVerticalPadding > 0;
 
     // если элемент не влизает на страницу
     if (!isElementFitIt) {
       element.remove();
 
       // если первый дочерний элемент это текст, пытаемся его обрезать
-      if (element.firstChild && element.firstChild.nodeType === Node.TEXT_NODE) {
-        const textChild = element.firstChild as Text;
-        const textContent = textChild.textContent;
 
-        if (textContent) {
-          const offset = textContent.length / 2;
-          textChild.splitText(offset);
+      const textChild = getTextChild(element);
 
-          const splittedElement = createElement(child.props);
-          splittedElement.appendChild(textChild);
+      if (textChild == null) continue;
 
-          page.appendChild(splittedElement);
-          // проверить влезает ли нода
+
+      function split(offset: number, leftLimit: number, rightLimit: number, elementToRemove?: HTMLElement) {
+        // console.log('current segment: ', `(${leftLimit}, ${rightLimit})`);
+
+        if (rightLimit - leftLimit <= 1 && elementToRemove) {
+          const { textContent } = elementToRemove;
+
+          if (textContent) {
+            const spaceIndex = textContent.lastIndexOf(' ');
+
+            if (spaceIndex !== -1) {
+              const textChild = getTextChild(elementToRemove);
+
+              if (textChild != null) {
+                const splittedText = textChild.splitText(spaceIndex - 1);
+                return splittedText;
+              }
+            }
+          }
+          return;
         }
+        elementToRemove && elementToRemove.remove();
+
+        const clonedChild = textChild.cloneNode(true) as Text;
+        clonedChild.splitText(offset);
+
+        // console.log('prev page: ', clonedChild.textContent);
+        // console.log('next page: ', newNode.textContent);
+        // console.log('================================================');
+        const splittedElement = createElement(child.props);
+        splittedElement.appendChild(clonedChild);
+
+        page.appendChild(splittedElement);
+        // проверить влезает ли нода
+        lowerLimit = computeLowerLimit(splittedElement);
+        isElementFitIt = pageLowerLimit - lowerLimit - pageVerticalPadding > 0;
+
+        if (isElementFitIt) {
+          const nextOffset = Math.floor(offset + (rightLimit - offset) / 2);
+          return split(nextOffset, offset, rightLimit, splittedElement);
+        } else {
+          const nextOffset = Math.floor(leftLimit + (offset - leftLimit) / 2);
+          return split(nextOffset, leftLimit, offset, splittedElement);
+        }
+      }
+
+      if (textChild.textContent) {
+        const offset = textChild.textContent.length / 2;
+        const textNode = split(offset, 0, textChild.textContent.length);
+        console.log(textNode);
       }
 
       // добавляем новую страницу
@@ -95,6 +140,15 @@ if (app !== null) {
       pageLowerLimit = computeLowerLimit(page);
     }
   }
+}
+
+function getTextChild(element: HTMLElement) {
+  if (element.firstChild && element.firstChild.nodeType === Node.TEXT_NODE) {
+    const textNode = element.firstChild as Text;
+    return textNode;
+  }
+
+  return null;
 }
 
 function getVerticalPadding(computedStyle: CSSStyleDeclaration): number {
@@ -140,8 +194,7 @@ function createHeader(props: HeaderProps, content?: string): HTMLElement {
 
   const el = document.createElement(props.level);
   el.classList.add('header');
-  if (content)
-    el.textContent = content;
+  if (content) el.textContent = content;
 
   return el;
 }
@@ -150,8 +203,7 @@ function createParagraph(props: ParagraphProps, content?: string): HTMLElement {
   const el = document.createElement('p');
   el.classList.add('paragraph');
 
-  if (content)
-    el.textContent = content;
+  if (content) el.textContent = content;
 
   if (props && props.className) {
     el.classList.add(props.className);
