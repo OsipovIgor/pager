@@ -58,9 +58,9 @@ if (app !== null) {
 
           if (paragraph.textContent !== null && firstChild.nodeType === Node.TEXT_NODE) {
             const offset = paragraph.textContent.length;
-            const halfTextNode = firstChild.splitText(offset / 2);
-            const halfParagraph = createParagraph(child.props, halfTextNode.textContent || '');
-            const newParagraph = document.createElement(paragraph.tagName)
+            firstChild.splitText(offset / 2);
+
+            const newParagraph = createParagraph(child.props);
             newParagraph.appendChild(firstChild);
 
             page.appendChild(newParagraph);
@@ -126,10 +126,16 @@ function createHeader(props: HeaderProps, content: string) {
   return el;
 }
 
-function createParagraph(props: ParagraphProps, content: string) {
+function createParagraph(props: ParagraphProps, content?: string) {
   const el = document.createElement('p');
   el.classList.add('paragraph');
-  el.textContent = content;
+
+  if (content)
+    el.textContent = content;
+
+  if (props && props.className) {
+    el.classList.add(props.className);
+  }
 
   return el;
 }
