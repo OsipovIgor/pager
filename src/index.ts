@@ -53,10 +53,27 @@ if (app !== null) {
         const diff = pageBottom - paragraphBottom - verticalPadding;
 
         if (diff < 0) {
+          paragraph.remove();
+          const firstChild = paragraph.firstChild as Text;
+
+          if (paragraph.textContent !== null && firstChild.nodeType === Node.TEXT_NODE) {
+            const offset = paragraph.textContent.length;
+            const halfTextNode = firstChild.splitText(offset / 2);
+            const halfParagraph = createParagraph(child.props, halfTextNode.textContent || '');
+            const newParagraph = document.createElement(paragraph.tagName)
+            newParagraph.appendChild(firstChild);
+
+            page.appendChild(newParagraph);
+
+            const coeff = getBottomCoeff(newParagraph);
+            const diff = pageBottom - verticalPadding - coeff;
+          }
+
           page = createPage(PageType.A4);
 
           doc.appendChild(page);
           page.appendChild(paragraph);
+
           pageBottom = getBottomCoeff(page);
         }
 
