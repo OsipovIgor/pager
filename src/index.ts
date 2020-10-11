@@ -30,21 +30,54 @@ const app = document.getElementById('app');
 if (app !== null) {
   // document -> page -> ...
   const doc = createDocument(contract.props);
-  const page = createPage(PageType.A4);
-
-  contract.children.forEach((child: any) => {
-    switch (child.type) {
-      case NodeType.header:
-        page.appendChild(createHeader(child.props, child.content));
-        break;
-      case NodeType.paragraph:
-        page.appendChild(createParagraph(child.props, child.content));
-        break;
-    }
-  });
+  let page = createPage(PageType.A4);
 
   doc.appendChild(page);
   app.appendChild(doc);
+
+  let pageBottom = getBottomCoeff(page);
+  const pageStyles = window.getComputedStyle(page);
+
+  const verticalPadding = getVerticalPadding(pageStyles);
+
+  for (let child of contract.children) {
+    switch (child.type) {
+      case NodeType.header:
+        const header = createHeader(child.props, child.content);
+        page.appendChild(header);
+        break;
+      case NodeType.paragraph:
+        const paragraph = createParagraph(child.props, child.content);
+        page.appendChild(paragraph);
+        const paragraphBottom = getBottomCoeff(paragraph);
+        const diff = pageBottom - paragraphBottom - verticalPadding;
+
+        if (diff < 0) {
+          page = createPage(PageType.A4);
+
+          doc.appendChild(page);
+          page.appendChild(paragraph);
+          pageBottom = getBottomCoeff(page);
+        }
+
+        break;
+    }
+  }
+}
+
+function getVerticalPadding(computedStyle: CSSStyleDeclaration): number {
+  if (!(computedStyle instanceof CSSStyleDeclaration)) return 0;
+  const padding = computedStyle.getPropertyValue('padding');
+
+  const array = padding.split(' ');
+  if (array.length !== 4) return 0;
+
+  const [top, right, bottom, left] = array.map(parseFloat);
+  return top + bottom;
+}
+
+function getBottomCoeff(element: HTMLElement) {
+  return element.getBoundingClientRect().bottom;
 }
 
 function createDocument(props: DocumentProps) {
