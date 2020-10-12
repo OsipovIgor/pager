@@ -12,23 +12,20 @@ export function createSplitter(
     leftLimit: number,
     rightLimit: number,
     elementToRemove?: HTMLElement
-  ): Text | null {
-    // console.log('current segment: ', `(${leftLimit}, ${rightLimit})`);
+  ): number {
+    elementToRemove && elementToRemove.remove();
 
     if (rightLimit - leftLimit <= 1 && elementToRemove) {
       const { textContent } = elementToRemove;
 
       if (textContent) {
-        const spaceIndex = textContent.lastIndexOf(' ');
+        const currentContent = textContent.substring(0, offset);
+        const spaceIndex = currentContent.lastIndexOf(' ');
 
-        if (spaceIndex !== -1) {
-          const splittedText = textNode.splitText(spaceIndex - 1);
-          return splittedText;
-        }
+        return spaceIndex;//textContent.lastIndexOf(' ');
       }
-      return null;
+      return -1;
     }
-    elementToRemove && elementToRemove.remove();
 
     const clonedChild = textNode.cloneNode(true) as Text;
     clonedChild.splitText(offset);

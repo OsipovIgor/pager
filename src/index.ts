@@ -83,20 +83,25 @@ if (app !== null) {
       if (textChild.textContent) {
         const offset = textChild.textContent.length / 2;
         const split = createSplitter(textChild, child.props, createElement, page, checkFitIn);
-        const textNode = split(offset, 0, textChild.textContent.length);
+        const newOffset = split(offset, 0, textChild.textContent.length);
 
-        if (textNode !== null) {
-          element.appendChild(textNode);
+        if (newOffset !== -1) {
+          const splittedNode = textChild.splitText(newOffset);
+          if (splittedNode != null) {
+            const oldElement = createElement(child.props, textChild.textContent);
+            page.appendChild(oldElement);
+
+            page = createPage(PageType.A4);
+            doc.appendChild(page);
+
+            // обновляем нижнюю границу
+            pageLowerLimit = computeLowerLimit(page);
+
+            const splittedElement = createElement(child.props, splittedNode.textContent || '');
+            page.appendChild(splittedElement);
+          }
         }
       }
-
-      // добавляем новую страницу
-      page = createPage(PageType.A4);
-      page.appendChild(element);
-      doc.appendChild(page);
-
-      // обновляем нижнюю границу
-      pageLowerLimit = computeLowerLimit(page);
     }
   }
 }
@@ -109,7 +114,7 @@ function getVerticalPadding(computedStyle: CSSStyleDeclaration): number {
   if (array.length !== 4) return 0;
 
   const [top, right, bottom, left] = array.map(parseFloat);
-  return top + bottom;
+  return bottom;
 }
 
 function createDocument(props: DocumentProps) {
