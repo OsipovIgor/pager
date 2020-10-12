@@ -1,8 +1,11 @@
 import contractJson from './document.json';
 import { createSplitter } from './splitter';
-import { NodeType } from './types/node';
-import { PageType } from './types/page';
+
+import { NodeType } from './metadoc/types/node';
+import { PageType } from './metadoc/types/page';
+
 import { computeLowerLimit, getTextChild } from './utils';
+import { DOMElementBuilder } from './metadoc/element-builder';
 
 const contract = contractJson;
 
