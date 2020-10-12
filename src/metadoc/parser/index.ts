@@ -1,0 +1,1 @@
+export { MetadocParser } from './parser';

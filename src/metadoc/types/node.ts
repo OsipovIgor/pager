@@ -12,7 +12,7 @@ export const MetaDocHtmlNodeMapper = {
   [NodeType.document]: 'div',
   [NodeType.template]: 'div',
   [NodeType.header]: 'h1',
-  [NodeType.paragraph]: 'paragrapg',
+  [NodeType.paragraph]: 'p',
   [NodeType.text]: 'div',
   [NodeType.list]: 'ul',
   [NodeType.listItem]: 'li',

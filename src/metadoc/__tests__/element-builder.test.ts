@@ -7,7 +7,7 @@ beforeEach(() => {
   builder = new DOMElementBuilder(NodeType.document);
 })
 
-describe('DOMEelementBuilder', () => {
+describe('DOMElementBuilder', () => {
   test('Создание экземпляра без ошибок', () => {
     expect(builder).not.toBeNull();
   });
@@ -22,9 +22,14 @@ describe('DOMEelementBuilder', () => {
     test('Узел paragraph должна преобразовываться в p', () => {
       builder = new DOMElementBuilder(NodeType.paragraph);
       const element = builder.build();
-      expect(element).toBeInstanceOf(HTMLUnknownElement);
+      expect(element).toBeInstanceOf(HTMLParagraphElement);
+    });
+
+    test('Узел header должен преобразовываться в h1', () => {
+      builder = new DOMElementBuilder(NodeType.header);
+      const element = builder.build();
+      expect(element).toBeInstanceOf(HTMLHeadingElement);
     });
   });
-
 
 })
