@@ -5,6 +5,7 @@
     "jsx": "preserve",
     "esModuleInterop": true,
     "sourceMap": true,
+    "resolveJsonModule": true,
     "allowJs": true,
     "lib": [
       "es6",

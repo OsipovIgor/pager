@@ -1,24 +1,11 @@
-import contract from './document.json';
+import contractJson from './document.json';
 import { createSplitter } from './splitter';
+import { NodeType } from './types/node';
+import { PageType } from './types/page';
 import { computeLowerLimit, getTextChild } from './utils';
 
-enum PageType {
-  A3 = 'a3',
-  A4 = 'a4',
-  A5 = 'a5'
-}
+const contract = contractJson;
 
-enum NodeType {
-  document = 'document'
-}
-
-/**
- * header, paragraph, text - основные текстовые элементы;
- */
-enum Node20Type {
-  header = 'header',
-  paragraph = 'paragraph'
-}
 
 type HeaderLevel = 'H1' | 'H2' | 'H3' | 'H4' | 'H5' | 'H6';
 
@@ -42,9 +29,9 @@ type CreateElement = (props: HeaderProps & ParagraphProps, content?: string) => 
 
 const app = document.getElementById('app');
 
-const elementCreators: Record<Node20Type, CreateElement> = {
-  [Node20Type.header]: createHeader,
-  [Node20Type.paragraph]: createParagraph
+const elementCreators: Record<Extract<NodeType, 'header' | 'paragraph'>, CreateElement> = {
+  [NodeType.header]: createHeader,
+  [NodeType.paragraph]: createParagraph
 };
 
 if (app !== null) {
@@ -62,7 +49,7 @@ if (app !== null) {
   const pageVerticalPadding = getVerticalPadding(pageStyles);
 
   for (let child of contract.children) {
-    const createElement = elementCreators[child.type as Node20Type];
+    const createElement = elementCreators[child.type];
 
     const element = createElement(child.props, child.content);
     page.appendChild(element);
