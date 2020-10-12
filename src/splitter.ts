@@ -22,12 +22,8 @@ export function createSplitter(
         const spaceIndex = textContent.lastIndexOf(' ');
 
         if (spaceIndex !== -1) {
-          const textChild = getTextChild(elementToRemove);
-
-          if (textChild != null) {
-            const splittedText = textChild.splitText(spaceIndex - 1);
-            return splittedText;
-          }
+          const splittedText = textNode.splitText(spaceIndex - 1);
+          return splittedText;
         }
       }
       return null;
