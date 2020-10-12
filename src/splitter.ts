@@ -1,4 +1,4 @@
-import { computeLowerLimit, getTextChild } from './utils';
+import { computeLowerLimit } from './utils';
 
 export function createSplitter(
   textNode: Text,
@@ -7,13 +7,8 @@ export function createSplitter(
   page: HTMLElement,
   checkFitIn: Function
 ) {
-  return function split(
-    offset: number,
-    leftLimit: number,
-    rightLimit: number,
-    elementToRemove?: HTMLElement
-  ): number {
-    elementToRemove && elementToRemove.remove();
+  return function split(offset: number, leftLimit: number, rightLimit: number, elementToRemove?: HTMLElement): number {
+    if (elementToRemove) elementToRemove.remove();
 
     if (rightLimit - leftLimit <= 1 && elementToRemove) {
       const { textContent } = elementToRemove;
@@ -22,7 +17,7 @@ export function createSplitter(
         const currentContent = textContent.substring(0, offset);
         const spaceIndex = currentContent.lastIndexOf(' ');
 
-        return spaceIndex;//textContent.lastIndexOf(' ');
+        return spaceIndex;
       }
       return -1;
     }
